@@ -5,7 +5,7 @@
 # Usage: request [-h | -l | requestName]
 #  -h - print the help menu
 #  -l - print the list of request names
-#   request - a custom request name (optional)
+#   requestName - a custom request name (optional)
 #
 # Dependencies: curl
 #   curl - to perform HTTP requests (required)
