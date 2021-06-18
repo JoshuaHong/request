@@ -165,7 +165,7 @@ while getopts "${options}" option; do
                 exit
             fi
             echo "Request names:"
-            printf "%s" "${requestNames}" | while IFS= read -r line; do
+            echo "${requestNames}" | while IFS= read -r line; do
                 if [ -n "${line}" ]; then
                     echo "${line}"
                 fi
