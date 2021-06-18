@@ -26,7 +26,7 @@ formatter="jq"
 # Constants
 protocol="HTTP/1.1"
 host="http://localhost:8008"
-token="_ZavbrIdDy6nyegA4aGSc3tmpn_j38czDdbObwtQoMA"
+token="token"
 
 # Variables
 method="POST"
