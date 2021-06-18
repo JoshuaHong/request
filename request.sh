@@ -2,39 +2,56 @@
 
 # Performs an HTTP request
 #
-# Usage: ./request [request]
+# Usage: request [-h | -l | requestName]
+#  -h - print the help menu
+#  -l - print the list of request names
 #   request - a custom request name (optional)
 #
-# Dependencies: curl, jq
+# Dependencies: curl
 #   curl - to perform HTTP requests (required)
-#   jq - to format the JSON response (optional - remove pipe to jq in request())
 #
 # Author: Joshua Hong
 
 
+# Formatter
+# Pipes the JSON response output to the program specified below
+# Optional - to remove set to empty string
+formatter="jq"
+
+
 # Parameters
 # Change below and run ./request
-# token and content are optional - to remove set to empty string
+# token and data are optional - to remove set to empty string
 
 # Constants
 protocol="HTTP/1.1"
-hostname="http://localhost:8008"
-token="token"
+host="http://localhost:8008"
+token="_ZavbrIdDy6nyegA4aGSc3tmpn_j38czDdbObwtQoMA"
 
 # Variables
 method="POST"
 path="/_matrix/client/r0/user_directory/search"
-content='{
+data='{
     "search_term": "josh",
     "limit": 10
 }'
 
 
 # Requests
-# Create a custom function with name [request] and run ./request [request]
+# Create a custom function below with name [request] and run ./request [request]
 # Functions should only change the above variables
-# Functions cannot be named "request", "setRequest" "main", "usage", or "help"
 # Function names should be unique - same name functions will be overridden
+# Add the all function names and descriptions to the list below to be printed
+
+# List of function names and descriptions to be printed using the "-l" flag
+# Each line should contain the function name and description separated by tab(s)
+requestNames="
+    register\t\tRegisters a new user and returns an access token
+    login\t\tAuthenticates a user and returns an access token
+    createPublicRoom\tCreates a public room and returns the room information
+    createPrivateRoom\tCreates a private room and returns the room information
+    getPublicRooms\tLists public rooms on the server
+"
 
 # Registers a new user and returns an access token
 register() {
@@ -44,7 +61,7 @@ register() {
     token=""
     method="POST"
     path="/_matrix/client/r0/register?kind=user"
-    content='{
+    data='{
         "auth": {
             "type": "m.login.dummy"
         },
@@ -61,7 +78,7 @@ login() {
     token=""
     method="POST"
     path="/_matrix/client/r0/login"
-    content='{
+    data='{
         "type": "m.login.password",
         "identifier": {
             "type": "m.id.user",
@@ -79,7 +96,7 @@ createPublicRoom() {
 
     method="POST"
     path="/_matrix/client/r0/createRoom"
-    content='{
+    data='{
         "visibility": "public",
         "preset": "public_chat",
         "room_alias_name": "'"${roomAliasName}"'",
@@ -96,7 +113,7 @@ createPrivateRoom() {
 
     method="POST"
     path="/_matrix/client/r0/createRoom"
-    content='{
+    data='{
         "visibility": "private",
         "preset": "private_chat",
         "room_alias_name": "'"${roomAliasName}"'",
@@ -109,65 +126,119 @@ createPrivateRoom() {
 getPublicRooms() {
     method="GET"
     path="/_matrix/client/r0/publicRooms"
-    content=""
+    data=""
 }
 
 
 # Driver code
 # Don't change below
 
-# Prints the program usage
-usage() {
-    echo "Usage: ./request [request]"
-}
+# Check for valid command-line input
+if [ "${#}" -gt 1 ]; then
+    >&2 echo "Error: Too many arguments"
+    >&2 echo "Usage: request [-h | -l | requestName]"
+    exit 1
+fi
 
-# Sets the above parameters based on the optional custom request name provided
-setRequest() {
-    if [ "${#}" -eq 0 ]; then
-        return
-    fi
-    if [ "${#}" -gt 1 ] ; then
-        echo "Error: Too many arguments"
-        usage
-        exit
-    fi
-    request="$1"
-    if [ "${request}" = "help" ] || [ "${request}" = "usage" ] ; then
-        usage
-        exit
-    fi
-    if [ "${request}" = "request" ] || [ "${request}" = "setRequest" ] \
-            || [ "${request}" = "main" ] || [ "${request}" = "usage" ]; then
-        echo "Error: Invalid request name"
-        usage
-        exit
-    fi
-    requestType="$(command -V "${request}" 2> /dev/null)"
+# Parse command-line options
+options=":hl"
+while getopts "${options}" option; do
+    case "${option}" in
+        h)
+            echo "Usage: request [-h | -l | requestName]"
+            echo ""
+            echo "Performs an HTTP request."
+            echo ""
+            echo "Options:"
+            echo "    -h             print the help menu"
+            echo "    -l             print the list of request names"
+            echo "    requestName    set the specified request parameters"
+            echo ""
+            echo "Exit Status:"
+            echo "    Returns success if request is valid, failure otherwise."
+            echo "    If curl fails, exit code is the same as that of curl."
+            exit
+            ;;
+        l)
+            if [ -z "${requestNames}" ]; then
+                echo "No request names defined"
+                exit
+            fi
+            echo -n "Request names:"
+            while IFS= read -r line; do
+                if [ -n "${line}" ]; then
+                    echo "${line}"
+                fi
+            done < <(echo -e "\n" "${requestNames}")
+            exit
+            ;;
+        *)
+            >&2 echo "Error: Invalid option \"${OPTARG}\""
+            >&2 echo "Usage: request [-h | -l | requestName]"
+            exit 1
+            ;;
+    esac
+done
+
+# Set the above parameters based on the custom request name if provided
+if [ "${#}" -eq 1 ]; then
+    requestName="${1}"
+    requestType="$(command -V "${requestName}" 2> /dev/null)"
     if [ -z "${requestType}" ] || [ -n "${requestType##*is a function*}" ]; then
-        echo "Error: Request does not exist"
-        usage
-        exit
+        >&2 echo "Error: Request \"${requestName}\" is not defined"
+        >&2 echo "Usage: request [-h | -l | requestName]"
+        exit 1
     fi
+    ${requestName}  # Execute the requestName function
+fi
 
-    ${request}
-}
+# Execute the HTTP request based on the above parameters
+response="$(curl \
+    -X "${method}" \
+    -H "Content-Type: application/json" \
+    ${token:+-H "Authorization: Bearer ${token}"} \
+    ${data:+-d "${data}"} \
+    "${host}${path}" \
+    "${protocol}" \
+    2> /dev/null)"
+responseExitCode="${?}"
 
-# Executes the HTTP request based on the above parameters
-request() {
-    curl \
-        -X "${method}" \
-        -H "Content-Type: application/json" \
-        ${token:+-H "Authorization: Bearer ${token}"} \
-        ${content:+-d "${content}"} \
-        "${hostname}${path}" \
-        "${protocol}" \
-        2> /dev/null \
-        | jq
-}
+# Check for a valid request
+if [ -z "${response}" ]; then
+    >&2 echo "Error: Bad request"
+    exit "${responseExitCode}"
+fi
 
-main() {
-    setRequest "${@}"
-    request
-}
+# Check if formatter is a valid command
+if [ -n "${formatter}" ] && ! command -v "${formatter}" > /dev/null 2>&1; then
+    >&2 echo "Error: Invalid formatter \"${formatter}\""
+    exit 1
+fi
 
-main "${@}"
+# Check if pipe to formatter is valid
+if [ -n "${formatter}" ]; then
+    formattedResponse="$(echo "${response}" | "${formatter}")"
+    formattedResponseExitCode="${?}"
+    if [ "${formattedResponseExitCode}" -ne 0 ] \
+            || [ -z "${formattedResponse}" ]; then
+        >&2 echo "Error: Invalid formatter \"${formatter}\""
+        exit 1
+    fi
+fi
+
+# Print the response
+if [ "${responseExitCode}" -ne 0 ]; then
+    if [ -n "${formatter}" ]; then
+        echo "${response}" | >&2 "${formatter}"
+    else
+        >&2 echo "${response}"
+    fi
+    exit "${responseExitCode}"
+else
+    if [ -n "${formatter}" ]; then
+        echo "${response}" | "${formatter}"
+    else
+        echo "${response}"
+    fi
+    exit
+fi
