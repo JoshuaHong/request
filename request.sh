@@ -44,13 +44,13 @@ data='{
 # Add the all function names and descriptions to the list below to be printed
 
 # List of function names and descriptions to be printed using the "-l" flag
-# Each line should contain the function name and description separated by tab(s)
+# Each line should contain the function name and description separated as needed
 requestNames="
-    register\t\tRegisters a new user and returns an access token
-    login\t\tAuthenticates a user and returns an access token
-    createPublicRoom\tCreates a public room and returns the room information
-    createPrivateRoom\tCreates a private room and returns the room information
-    getPublicRooms\tLists public rooms on the server
+    register             Registers a new user and returns an access token
+    login                Authenticates a user and returns an access token
+    createPublicRoom     Creates a public room and returns the room information
+    createPrivateRoom    Creates a private room and returns the room information
+    getPublicRooms       Lists public rooms on the server
 "
 
 # Registers a new user and returns an access token
@@ -164,12 +164,12 @@ while getopts "${options}" option; do
                 echo "No request names defined"
                 exit
             fi
-            echo -n "Request names:"
-            while IFS= read -r line; do
+            echo "Request names:"
+            printf "%s" "${requestNames}" | while IFS= read -r line; do
                 if [ -n "${line}" ]; then
                     echo "${line}"
                 fi
-            done < <(echo -e "\n" "${requestNames}")
+            done
             exit
             ;;
         *)
