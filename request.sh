@@ -22,11 +22,12 @@ formatter="jq"
 # Parameters
 # Change below and run ./request
 # token and data are optional - to remove set to empty string
+# Supports HTTP/0.9, HTTP/1.0, HTTP/1.1, HTTP/2-prior-knowledge, HTTP/2, HTTP/3
 
 # Constants
 protocol="HTTP/1.1"
-contentType="application/json"
 host="http://localhost:8008"
+contentType="application/json"
 token="token"
 
 # Variables
@@ -156,7 +157,8 @@ while getopts "${options}" option; do
             echo ""
             echo "Exit Status:"
             echo "    Returns success if request is valid, failure otherwise."
-            echo "    If curl fails, exit code is the same as that of curl."
+            echo "    If curl fails, the exit code is the same as that of curl."
+            echo "    For any other failure, the exit code is 1."
             exit
             ;;
         l)
@@ -188,20 +190,38 @@ if [ "${#}" -eq 1 ]; then
     ${requestName}  # Execute the requestName function
 fi
 
+# Verify the protocol
+if [ "${protocol}" == "HTTP/0.9" ]; then
+    protocol="0.9"
+elif [ "${protocol}" == "HTTP/1.0" ]; then
+    protocol="1.0"
+elif [ "${protocol}" == "HTTP/1.1" ]; then
+    protocol="1.1"
+elif [ "${protocol}" == "HTTP/2-prior-knowledge" ]; then
+    protocol="2-prior-knowledge"
+elif [ "${protocol}" == "HTTP/2" ]; then
+    protocol="2"
+elif [ "${protocol}" == "HTTP/3" ]; then
+    protocol="3"
+else
+    protocol="1.1"
+    >&2 echo "Warning: Invalid protocol. Defaults to HTTP/1.1"
+fi
+
 # Execute the HTTP request based on the above parameters
 response="$(curl \
+    --silent --show-error \
+    --http"${protocol}" \
     -X "${method}" \
     -H "Content-Type: ${contentType}" \
     ${token:+-H "Authorization: Bearer ${token}"} \
     ${data:+-d "${data}"} \
-    "${host}${path}" \
-    "${protocol}" \
-    2> /dev/null)"
+    "${host}${path}")"
 responseExitCode="${?}"
 
 # Check for a valid request
 if [ -z "${response}" ]; then
-    >&2 echo "Error: Bad request"
+    >&2 echo "Error: No response"
     exit "${responseExitCode}"
 fi
 
