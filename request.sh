@@ -25,6 +25,7 @@ formatter="jq"
 
 # Constants
 protocol="HTTP/1.1"
+contentType="application/json"
 host="http://localhost:8008"
 token="token"
 
@@ -190,7 +191,7 @@ fi
 # Execute the HTTP request based on the above parameters
 response="$(curl \
     -X "${method}" \
-    -H "Content-Type: application/json" \
+    -H "Content-Type: ${contentType}" \
     ${token:+-H "Authorization: Bearer ${token}"} \
     ${data:+-d "${data}"} \
     "${host}${path}" \
