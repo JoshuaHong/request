@@ -50,8 +50,7 @@ requestNames="
     login                Authenticates a user and returns an access token
     createPublicRoom     Creates a public room and returns the room information
     createPrivateRoom    Creates a private room and returns the room information
-    getPublicRooms       Lists public rooms on the server
-"
+    getPublicRooms       Lists public rooms on the server"
 
 # Registers a new user and returns an access token
 register() {
@@ -164,12 +163,8 @@ while getopts "${options}" option; do
                 echo "No request names defined"
                 exit
             fi
-            echo "Request names:"
-            echo "${requestNames}" | while IFS= read -r line; do
-                if [ -n "${line}" ]; then
-                    echo "${line}"
-                fi
-            done
+            printf "%s" "Request names:"
+            echo "${requestNames}"
             exit
             ;;
         *)
@@ -212,7 +207,7 @@ fi
 # Check if formatter is a valid command
 if [ -n "${formatter}" ] && ! command -v "${formatter}" > /dev/null 2>&1; then
     >&2 echo "Error: Invalid formatter \"${formatter}\""
-    exit 1
+    formatter=""
 fi
 
 # Check if pipe to formatter is valid
@@ -222,7 +217,7 @@ if [ -n "${formatter}" ]; then
     if [ "${formattedResponseExitCode}" -ne 0 ] \
             || [ -z "${formattedResponse}" ]; then
         >&2 echo "Error: Invalid formatter \"${formatter}\""
-        exit 1
+        formatter=""
     fi
 fi
 
