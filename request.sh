@@ -2,10 +2,10 @@
 
 # Performs an HTTP request
 #
-# Usage: request [-h | -l | requestName]
+# Usage: request [-h | -l | request]
 #  -h - print the help menu
-#  -l - print the list of request names
-#   requestName - a custom request name (optional)
+#  -l - print the list of requests
+#   request - a custom request (optional)
 #
 # Dependencies: curl
 #   curl - to perform HTTP requests (required)
@@ -28,7 +28,7 @@ formatter="jq"
 protocol="HTTP/1.1"
 host="http://localhost:8008"
 contentType="application/json"
-token="token"
+token="jv51A7TAzn9h2glPxe0uB0GSd6YN6MzhDDnS7bAOEKg"
 
 # Variables
 method="POST"
@@ -47,7 +47,7 @@ data='{
 
 # List of function names and descriptions to be printed using the "-l" flag
 # Each line should contain the function name and description separated as needed
-requestNames="
+requests="
     register             Registers a new user and returns an access token
     login                Authenticates a user and returns an access token
     createPublicRoom     Creates a public room and returns the room information
@@ -56,8 +56,8 @@ requestNames="
 
 # Registers a new user and returns an access token
 register() {
-    username="josh"
-    password="password"
+    read -p "username: " username
+    read -p "password: " password
 
     token=""
     method="POST"
@@ -73,8 +73,8 @@ register() {
 
 # Authenticates a user and returns an access token
 login() {
-    username="josh"
-    password="password"
+    read -p "username: " username
+    read -p "password: " password
 
     token=""
     method="POST"
@@ -91,9 +91,9 @@ login() {
 
 # Creates a public room and returns the room information
 createPublicRoom() {
-    roomAliasName="publicroom"
-    name="public room name"
-    topic="public room topic"
+    read -p "room: " roomAliasName
+    name="public room"
+    topic="topic"
 
     method="POST"
     path="/_matrix/client/r0/createRoom"
@@ -108,9 +108,9 @@ createPublicRoom() {
 
 # Creates a private room and returns the room information
 createPrivateRoom() {
-    roomAliasName="privateroom"
-    name="private room name"
-    topic="private room topic"
+    read -p "room: " roomAliasName
+    name="private room"
+    topic="topic"
 
     method="POST"
     path="/_matrix/client/r0/createRoom"
@@ -137,7 +137,7 @@ getPublicRooms() {
 # Check for valid command-line input
 if [ "${#}" -gt 1 ]; then
     >&2 echo "Error: Too many arguments"
-    >&2 echo "Usage: request [-h | -l | requestName]"
+    >&2 echo "Usage: request [-h | -l | request]"
     exit 1
 fi
 
@@ -146,14 +146,14 @@ options=":hl"
 while getopts "${options}" option; do
     case "${option}" in
         h)
-            echo "Usage: request [-h | -l | requestName]"
+            echo "Usage: request [-h | -l | request]"
             echo ""
             echo "Performs an HTTP request."
             echo ""
             echo "Options:"
             echo "    -h             print the help menu"
-            echo "    -l             print the list of request names"
-            echo "    requestName    set the specified request parameters"
+            echo "    -l             print the list of requests"
+            echo "    request        set the specified request parameters"
             echo ""
             echo "Exit Status:"
             echo "    Returns success if request is valid, failure otherwise."
@@ -162,46 +162,46 @@ while getopts "${options}" option; do
             exit
             ;;
         l)
-            if [ -z "${requestNames}" ]; then
-                echo "No request names defined"
+            if [ -z "${requests}" ]; then
+                echo "No requests defined"
                 exit
             fi
-            printf "%s" "Request names:"
-            echo "${requestNames}"
+            printf "%s" "Requests:"
+            echo "${requests}"
             exit
             ;;
         *)
             >&2 echo "Error: Invalid option \"${OPTARG}\""
-            >&2 echo "Usage: request [-h | -l | requestName]"
+            >&2 echo "Usage: request [-h | -l | request]"
             exit 1
             ;;
     esac
 done
 
-# Set the above parameters based on the custom request name if provided
+# Set the above parameters based on the custom request if provided
 if [ "${#}" -eq 1 ]; then
-    requestName="${1}"
-    requestType="$(command -V "${requestName}" 2> /dev/null)"
+    request="${1}"
+    requestType="$(command -V "${request}" 2> /dev/null)"
     if [ -z "${requestType}" ] || [ -n "${requestType##*is a function*}" ]; then
-        >&2 echo "Error: Request \"${requestName}\" is not defined"
-        >&2 echo "Usage: request [-h | -l | requestName]"
+        >&2 echo "Error: Request \"${request}\" is not defined"
+        >&2 echo "Usage: request [-h | -l | request]"
         exit 1
     fi
-    ${requestName}  # Execute the requestName function
+    ${request}  # Execute the request function
 fi
 
 # Verify the protocol
-if [ "${protocol}" == "HTTP/0.9" ]; then
+if [ "${protocol}" = "HTTP/0.9" ]; then
     protocol="0.9"
-elif [ "${protocol}" == "HTTP/1.0" ]; then
+elif [ "${protocol}" = "HTTP/1.0" ]; then
     protocol="1.0"
-elif [ "${protocol}" == "HTTP/1.1" ]; then
+elif [ "${protocol}" = "HTTP/1.1" ]; then
     protocol="1.1"
-elif [ "${protocol}" == "HTTP/2-prior-knowledge" ]; then
+elif [ "${protocol}" = "HTTP/2-prior-knowledge" ]; then
     protocol="2-prior-knowledge"
-elif [ "${protocol}" == "HTTP/2" ]; then
+elif [ "${protocol}" = "HTTP/2" ]; then
     protocol="2"
-elif [ "${protocol}" == "HTTP/3" ]; then
+elif [ "${protocol}" = "HTTP/3" ]; then
     protocol="3"
 else
     protocol="1.1"
