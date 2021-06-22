@@ -28,7 +28,7 @@ formatter="jq"
 protocol="HTTP/1.1"
 host="http://localhost:8008"
 contentType="application/json"
-token="jv51A7TAzn9h2glPxe0uB0GSd6YN6MzhDDnS7bAOEKg"
+token="token"
 
 # Variables
 method="POST"
