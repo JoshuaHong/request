@@ -56,8 +56,10 @@ requests="
 
 # Registers a new user and returns an access token
 register() {
-    read -p "username: " username
-    read -p "password: " password
+    printf "username: "
+    read -r username
+    printf "password: "
+    read -r password
 
     token=""
     method="POST"
@@ -73,8 +75,10 @@ register() {
 
 # Authenticates a user and returns an access token
 login() {
-    read -p "username: " username
-    read -p "password: " password
+    printf "username: "
+    read -r username
+    printf "password: "
+    read -r password
 
     token=""
     method="POST"
@@ -91,7 +95,8 @@ login() {
 
 # Creates a public room and returns the room information
 createPublicRoom() {
-    read -p "room: " roomAliasName
+    printf "room name: "
+    read -r roomAliasName
     name="public room"
     topic="topic"
 
@@ -108,7 +113,8 @@ createPublicRoom() {
 
 # Creates a private room and returns the room information
 createPrivateRoom() {
-    read -p "room: " roomAliasName
+    printf "room name: "
+    read -r roomAliasName
     name="private room"
     topic="topic"
 
