@@ -187,8 +187,14 @@ done
 # Set the above parameters based on the custom request if provided
 if [ "${#}" -eq 1 ]; then
     request="${1}"
+    if test "${request#*" "}" != "${request}"; then
+        >&2 echo "Error: Request \"${request}\" cannot contain spaces"
+        >&2 echo "Usage: request [-h | -l | request]"
+        exit 1
+    fi
     requestType="$(command -V "${request}" 2> /dev/null)"
-    if [ -z "${requestType}" ] || [ -n "${requestType##*is a function*}" ]; then
+    if [ -z "${requestType}" ] || \
+            test "${requestType#*" function"}" = "${requestType}"; then
         >&2 echo "Error: Request \"${request}\" is not defined"
         >&2 echo "Usage: request [-h | -l | request]"
         exit 1
