@@ -61,6 +61,10 @@ register() {
     printf "password: "
     read -r password
 
+    # Replace special characters with their literal character
+    password=${password//'\'/'\\'}
+    password=${password//'"'/'\"'}
+
     token=""
     method="POST"
     path="/_matrix/client/r0/register?kind=user"
@@ -79,6 +83,10 @@ login() {
     read -r username
     printf "password: "
     read -r password
+
+    # Replace special characters with their literal character
+    password=${password//'\'/'\\'}
+    password=${password//'"'/'\"'}
 
     token=""
     method="POST"
