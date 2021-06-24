@@ -203,22 +203,30 @@ if [ "${#}" -eq 1 ]; then
 fi
 
 # Verify the protocol
-if [ "${protocol}" = "HTTP/0.9" ]; then
-    protocol="0.9"
-elif [ "${protocol}" = "HTTP/1.0" ]; then
-    protocol="1.0"
-elif [ "${protocol}" = "HTTP/1.1" ]; then
-    protocol="1.1"
-elif [ "${protocol}" = "HTTP/2-prior-knowledge" ]; then
-    protocol="2-prior-knowledge"
-elif [ "${protocol}" = "HTTP/2" ]; then
-    protocol="2"
-elif [ "${protocol}" = "HTTP/3" ]; then
-    protocol="3"
-else
-    protocol="1.1"
-    >&2 echo "Warning: Invalid protocol. Defaults to HTTP/1.1"
-fi
+case "${protocol}" in
+    "HTTP/0.9")
+        protocol="0.9"
+        ;;
+    "HTTP/1.0")
+        protocol="1.0"
+        ;;
+    "HTTP/1.1")
+        protocol="1.1"
+        ;;
+    "HTTP/2-prior-knowledge")
+        protocol="2-prior-knowledge"
+        ;;
+    "HTTP/2")
+        protocol="2"
+        ;;
+    "HTTP/3")
+        protocol="3"
+        ;;
+    *)
+        protocol="1.1"
+        >&2 echo "Warning: Invalid protocol. Defaults to HTTP/1.1"
+        ;;
+esac
 
 # Execute the HTTP request based on the above parameters
 response="$(curl \
